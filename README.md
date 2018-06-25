@@ -1,5 +1,7 @@
 # BunyanFormatter
 
+<!-- bunyan_header -->
+
 You probably want:
 
 * documentation on [using the Bunyan
