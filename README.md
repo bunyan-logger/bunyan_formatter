@@ -3,9 +3,11 @@
 You probably want:
 
 * documentation on [using the Bunyan
-  Logger](https://github.com/bunyan-logger/bunyan_docs/README.md)
+  Logger](https://github.com/bunyan-logger/bunyan_docs/blob/master/README.md
+)
 
-* notes on [writing plugins](https://github.com/bunyan-logger/bunyan_docs/plugins.md) for the Bunyan logger
+* notes on [writing plugins](https://github.com/bunyan-logger/bunyan_docs/blob/master/plugins.md
+) for the Bunyan logger
 
 * stories about a [lumberjack](http://www.americanfolklore.net/.search?results_page=my_results.html&query=paul+bunyan&name=Search).
 
