@@ -2,16 +2,18 @@ defmodule Bunyan.Formatter do
 
   @moduledoc """
 
-  * `$date`     - date the log message was sent (yy-mm-dd)
-  * `$time`     - time the log message was sent (hh:mm:ss.mmm)
-  * `$datetime` - "$date $time"
-  * `$message`  - whole log message
+  * `$date`           - date the log message was sent (yy-mm-dd)
+  * `$time`           - time the log message was sent (hh:mm:ss.mmm)
+  * `$datetime`       - "$date $time"
+  * `$message`        - whole log message
   * `$msg_first_line` - just the first line of the message
-  * `$msg_rest` - lines 2... of the message
-  * `$level`    - the log level
-  * `$node`     - the node that prints the message
-  * `$pid`      - the pid that generated the messae
-  * `$extra`    - any term. maps and keyword lists are formatted nicely
+  * `$msg_rest`       - lines 2... of the message
+  * `$level`          - the log level
+  * `$node`           - the node that prints the message
+  * `$pid`            - the pid that generated the message
+  * `$remote_info`    - if the node of the message is not this node, then a
+    newline and the pid and node name
+  * `$extra`          - any term. maps and keyword lists are formatted nicely
   """
 
   @ansi_reset IO.ANSI.reset
@@ -68,7 +70,7 @@ defmodule Bunyan.Formatter do
         unquote(preload)
 
         [
-          unquote(main_message),
+          unquote(__MODULE__).indent_all_but_first(unquote(main_message), unquote(padding)),
           unquote(__MODULE__).indent(unquote(extra_message), unquote(padding))
         ]
       end
@@ -247,7 +249,7 @@ defmodule Bunyan.Formatter do
 
   defp field_builder("$node", _, _) do
     quote do
-      inspect(node)
+      unquote(__MODULE__).format_node(node)
     end
   end
 
@@ -258,7 +260,27 @@ defmodule Bunyan.Formatter do
 
   defp field_builder("$pid", _, _) do
     quote do
-      inspect(pid)
+      unquote(__MODULE__).format_pid(pid)
+    end
+  end
+
+  #----------------+
+  #  $remote_info  |
+  #----------------+
+
+  defp field_builder("$remote_info", _, _) do
+    quote do
+      if node == node() do
+          ""
+      else
+        [
+          "(from ",
+          unquote(__MODULE__).format_pid(pid),
+          " on ",
+          unquote(__MODULE__).format_node(node),
+          ")\n"
+        ]
+      end
     end
   end
 
@@ -309,14 +331,15 @@ defmodule Bunyan.Formatter do
 
     Valid formats are:
 
-      $date     - date the log message was sent (yy-mm-dd)
-      $time     - time the log message was sent (hh:mm:ss.mmm)
-      $datetime - "$date $time"
-      $message  - the log message
-      $level    - the log level
-      $node     - the node that prints the message
-      $pid      - the pid that generated the message
-      $extra    - any term. maps and keyword lists are formatted nicely
+      $date         - date the log message was sent (yy-mm-dd)
+      $time         - time the log message was sent (hh:mm:ss.mmm)
+      $datetime     - "$date $time"
+      $message      - the log message
+      $level        - the log level
+      $node         - the node that prints the message
+      $pid          - the pid that generated the message
+      $remote_info  - the pid and node, if the message is remote
+      $extra        - any term. maps and keyword lists are formatted nicely
 
     """
   end
@@ -340,9 +363,10 @@ defmodule Bunyan.Formatter do
   defp field_size("$datetime"), do: 23
   defp field_size("$level"),    do:  1
 
-  defp field_size("$node"),     do: 15
-  defp field_size("$pid"),      do: 12
-  defp field_size("$extra"),    do:  0
+  defp field_size("$node"),        do: 15
+  defp field_size("$pid"),         do: 12
+  defp field_size("$remote_info"), do: 0
+  defp field_size("$extra"),       do:  0
 
   defp field_size(text) when is_binary(text), do: String.length(text)
 
@@ -389,6 +413,17 @@ defmodule Bunyan.Formatter do
     "#{pad2(h)}:#{pad2(m)}:#{pad2(s)}.#{pad_millis(div(micros, 1000))}"
   end
 
+  def format_pid(pid) do
+    pid
+    |> inspect()
+    |> String.replace("PID", "")
+  end
+
+  def format_node(node) do
+    node
+    |> to_string()
+  end
+
   defp pad2(0), do: "00"
   defp pad2(1), do: "01"
   defp pad2(2), do: "02"
@@ -415,5 +450,15 @@ defmodule Bunyan.Formatter do
     |> Enum.join("")
     |> String.split(~r/\n/, trim: true)
     |> Enum.map(fn line -> [ padding, line, "\n" ] end)
+  end
+
+  def indent_all_but_first(msg, padding) do
+    [ first | rest ] =
+      msg
+      |> List.flatten
+      |> Enum.join("")
+      |> String.split(~r/\n/, trim: true)
+
+    [ first, "\n" | Enum.map(rest, fn line -> [ padding, line, "\n" ] end) ]
   end
 end
