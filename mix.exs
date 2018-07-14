@@ -15,9 +15,10 @@ defmodule BunyanFormatter.MixProject do
 
   def application(), do: []
 
-  def deps(_) do
+  def deps(a) do
+    IO.inspect a
     [
-      bunyan:  [ bunyan_shared: "~> 0.0.0" ],
+      bunyan:  [ bunyan_shared: ">= 0.0.0" ],
       others:  [],
     ]
   end
