@@ -1,4 +1,6 @@
-Code.load_file("shared_build_stuff/mix.exs")
+unless function_exported?(Bunyan.Shared.Build, :__info__, 1),
+do: Code.require_file("shared_build_stuff/mix.exs")
+
 alias Bunyan.Shared.Build
 
 defmodule BunyanFormatter.MixProject do
@@ -15,8 +17,7 @@ defmodule BunyanFormatter.MixProject do
 
   def application(), do: []
 
-  def deps(a) do
-    IO.inspect a
+  def deps(_) do
     [
       bunyan:  [ bunyan_shared: ">= 0.0.0" ],
       others:  [],
