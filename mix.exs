@@ -9,7 +9,7 @@ defmodule BunyanFormatter.MixProject do
   def project() do
     Build.project(
       :bunyan_formatter,
-      "0.1.0",
+      "0.5.0",
       &deps/1,
       "Log message formatter for the Bunyan distributed and pluggable logging system"
     )
